@@ -8,7 +8,7 @@ Smart Movie Recommender combines multiple recommendation techniques to help user
 
 ## 🌐 Live Demo
 
-**Application:** [Open Smart Movie Recommender](YOUR_STREAMLIT_LINK_HERE)
+**Application:** [Open Smart Movie Recommender]([YOUR_STREAMLIT_LINK_HERE](https://smart-movie-recomendation.streamlit.app/))
 
 **GitHub Repository:** https://github.com/krohitrkumar/movie-recommendation-system
 
