@@ -1,0 +1,28 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# VS Code
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Raw datasets
+0.data/
+
+# Large local-only files
+3.outputs/ratings_processed_main.csv
+4.models/collaborative_filtering_svd_main.pkl
+
+# Virtual environment
+venv/
+
+# OS files
+.DS_Store
+Thumbs.db

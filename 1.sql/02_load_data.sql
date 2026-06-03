@@ -1,0 +1,16 @@
+-- =========================================================
+-- 02_LOAD_DATA.SQL
+-- Movie Recommendation System - Data Loading
+-- =========================================================
+-- NOTE: Data was imported from CSV files using pgAdmin
+-- The following tables were populated:
+-- - movies.csv → movies table
+-- - ratings.csv → ratings table
+-- - tags.csv → tags table
+-- - links.csv → links table
+-- - genome-tags.csv → genome_tags table
+-- - genome-scores.csv → genome_scores table
+--
+-- Use the COPY command or pgAdmin's import feature
+-- to load data from CSV files into these tables.
+-- =========================================================
