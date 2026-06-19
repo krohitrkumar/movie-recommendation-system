@@ -8,7 +8,6 @@ Smart Movie Recommender combines multiple recommendation techniques to help user
 
 ## 🏗️ System Architecture
 
-<<<<<<< HEAD
 **Application:** [Open Smart Movie Recommender](https://smart-movie-recomendation.streamlit.app/)
 =======
 Below is the technical data flow and system architecture showing how the ETL pipelines, trained machine learning models, and Streamlit user interface components interact:
