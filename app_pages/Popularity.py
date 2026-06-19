@@ -61,28 +61,34 @@ def show_popularity():
         if not top_movies.empty:
             # Display in cards
             for idx, row in top_movies.iterrows():
-                col1, col2, col3 = st.columns([2, 1, 1])
+                # Format genres nicely as tags
+                genres_html = ""
+                if pd.notna(row.get('genres')):
+                    genres_list = [g.strip() for g in row['genres'].split('|')]
+                    genres_html = " ".join([f'<span class="genre-badge">{g}</span>' for g in genres_list])
                 
-                with col1:
-                    st.markdown(f"### 🎬 {row['title']}")
-                    if pd.notna(row.get('genres')):
-                        st.write(f"**Genres:** {row['genres']}")
-                    if pd.notna(row.get('release_year')):
-                        st.write(f"**Year:** {int(row['release_year'])}")
+                year_str = f"({int(row['release_year'])})" if pd.notna(row.get('release_year')) else ""
                 
-                with col2:
-                    st.metric(
-                        "Average Rating",
-                        f"{row['avg_rating']:.2f}/5.0"
-                    )
-                
-                with col3:
-                    st.metric(
-                        "Ratings Count",
-                        f"{int(row['rating_count']):,}"
-                    )
-                
-                st.markdown("---")
+                st.markdown(f"""
+                <div class="movie-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div style="flex: 2; min-width: 250px;">
+                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.4rem; color: #f8fafc;">🎬 {row['title']} <span style="font-weight: 300; opacity: 0.6; color: #94a3b8;">{year_str}</span></h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.2rem;">{genres_html}</div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px; display: flex; gap: 0.8rem; justify-content: flex-end; align-items: center;">
+                            <div style="text-align: center; background: rgba(37, 99, 235, 0.12); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(37, 99, 235, 0.25); min-width: 90px;">
+                                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #60a5fa; font-weight: 500;">Avg Rating</div>
+                                <div style="font-size: 1.15rem; font-weight: 700; color: #3b82f6;">{row['avg_rating']:.2f}</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(16, 185, 129, 0.12); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25); min-width: 90px;">
+                                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; font-weight: 500;">Ratings</div>
+                                <div style="font-size: 1.15rem; font-weight: 700; color: #10b981;">{int(row['rating_count']):,}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         else:
             st.warning("No recommendations available.")
     

@@ -59,16 +59,26 @@ def show_content_based():
     # Main content
     st.markdown("### 🔍 Search for a Movie")
     
+    # Initialize search state if set by suggestions or random browser
+    default_search = ""
+    if "selected_suggestion" in st.session_state and st.session_state.selected_suggestion:
+        default_search = st.session_state.selected_suggestion
+        st.session_state.selected_suggestion = None  # Clear it
+    elif "quick_search" in st.session_state and st.session_state.quick_search:
+        default_search = st.session_state.quick_search
+        st.session_state.quick_search = None  # Clear it
+    
     col1, col2 = st.columns([3, 1])
     
     with col1:
         search_query = st.text_input(
             "Enter a movie title (or partial title)",
+            value=default_search,
             placeholder="e.g., 'Inception', 'Dark Knight', 'Avatar'..."
         )
     
     with col2:
-        search_button = st.button("🔍 Search", use_container_width=True)
+        search_button = st.button("🔍 Search", width="stretch")
     
     if search_query or search_button:
         if not search_query.strip():
@@ -105,28 +115,34 @@ def show_content_based():
                     
                     # Display recommendations
                     for idx, row in recommendations.iterrows():
-                        col1, col2, col3 = st.columns([2, 1, 1])
+                        # Format genres nicely as tags
+                        genres_html = ""
+                        if pd.notna(row.get('genres')):
+                            genres_list = [g.strip() for g in row['genres'].split('|')]
+                            genres_html = " ".join([f'<span class="genre-badge">{g}</span>' for g in genres_list])
                         
-                        with col1:
-                            st.markdown(f"### 🎬 {row['title']}")
-                            if pd.notna(row.get('genres')):
-                                st.write(f"**Genres:** {row['genres']}")
-                            if pd.notna(row.get('release_year')):
-                                st.write(f"**Year:** {int(row['release_year'])}")
+                        year_str = f"({int(row['release_year'])})" if pd.notna(row.get('release_year')) else ""
                         
-                        with col2:
-                            st.metric(
-                                "Similarity",
-                                f"{row['similarity_score']:.2%}"
-                            )
-                        
-                        with col3:
-                            st.metric(
-                                "Score",
-                                f"{row['similarity_score']:.3f}"
-                            )
-                        
-                        st.markdown("---")
+                        st.markdown(f"""
+                        <div class="movie-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div style="flex: 2; min-width: 250px;">
+                                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.4rem; color: #f8fafc;">🎬 {row['title']} <span style="font-weight: 300; opacity: 0.6; color: #94a3b8;">{year_str}</span></h3>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.2rem;">{genres_html}</div>
+                                </div>
+                                <div style="flex: 1; min-width: 200px; display: flex; gap: 0.8rem; justify-content: flex-end; align-items: center;">
+                                    <div style="text-align: center; background: rgba(37, 99, 235, 0.12); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(37, 99, 235, 0.25); min-width: 100px;">
+                                        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #60a5fa; font-weight: 500;">Similarity</div>
+                                        <div style="font-size: 1.15rem; font-weight: 700; color: #3b82f6;">{row['similarity_score']:.2%}</div>
+                                    </div>
+                                    <div style="text-align: center; background: rgba(16, 185, 129, 0.12); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25); min-width: 90px;">
+                                        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; font-weight: 500;">Cos Score</div>
+                                        <div style="font-size: 1.15rem; font-weight: 700; color: #10b981;">{row['similarity_score']:.3f}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
                 else:
                     st.warning("No similar movies found. Try a different movie.")
             else:
@@ -143,7 +159,7 @@ def show_content_based():
                     
                     for idx, suggestion in enumerate(suggestions[:3]):
                         with cols[idx]:
-                            if st.button(suggestion, key=f"suggestion_{idx}", use_container_width=True):
+                            if st.button(suggestion, key=f"suggestion_{idx}", width="stretch"):
                                 st.session_state.selected_suggestion = suggestion
                                 st.rerun()
                     
@@ -162,15 +178,24 @@ def show_content_based():
     
     if st.checkbox("Show random movies for recommendation"):
         n_random = st.slider("How many random movies?", 3, 20, 5)
-        random_movies = movies_df.sample(n=n_random, random_state=None)
         
+        # Initialize or update random movies cache in session state
+        if "random_movies_list" not in st.session_state or len(st.session_state.random_movies_list) != n_random:
+            st.session_state.random_movies_list = movies_df.sample(n=n_random)
+            
+        if st.button("🔄 Refresh Random List", width="stretch"):
+            st.session_state.random_movies_list = movies_df.sample(n=n_random)
+            st.rerun()
+            
+        random_movies = st.session_state.random_movies_list
         st.markdown(f"#### Random Movies (sample of {n_random})")
         
         for idx, row in random_movies.iterrows():
             col1, col2 = st.columns([3, 1])
             
+            year_val = f"({int(row['release_year'])})" if pd.notna(row.get('release_year')) and row['release_year'] > 0 else ""
             with col1:
-                st.markdown(f"**{row['title']}** ({int(row['release_year'])})")
+                st.markdown(f"**{row['title']}** {year_val}")
                 st.write(f"Genres: {row['genres']}")
             
             with col2:

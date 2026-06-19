@@ -193,7 +193,7 @@ def show_about():
         │   ├── top_genres.html
         │   └── ...
         │
-        ├── pages/                           # Streamlit pages
+        ├── app_pages/                       # Streamlit pages
         │   ├── Home.py
         │   ├── Popularity.py
         │   ├── Content_Based.py

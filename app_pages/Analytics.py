@@ -59,7 +59,7 @@ def show_analytics():
         with col1:
             st.markdown("#### Top 10 Movies")
             top_10 = popularity_df.head(10)[['title', 'avg_rating', 'rating_count']]
-            st.dataframe(top_10, use_container_width=True)
+            st.dataframe(top_10, width="stretch")
         
         with col2:
             st.markdown("#### Latest Movies (by year)")
@@ -68,7 +68,7 @@ def show_analytics():
                 .nlargest(10, "release_year")
                 [["title", "release_year", "genres"]]
             )
-            st.dataframe(latest, use_container_width=True)
+            st.dataframe(latest, width="stretch")
     
     with tab2:
         st.markdown("### 🎬 Movie Analysis")
@@ -261,26 +261,43 @@ def show_analytics():
         if not viz_path.exists():
             viz_path.mkdir(parents=True, exist_ok=True)
 
-        viz_files = sorted(viz_path.glob("*.html"))
+        viz_files = sorted(list(viz_path.glob("*.html")) + list(viz_path.glob("*.png")))
 
         if viz_files:
             st.success(f"Found {len(viz_files)} saved visualizations:")
+
+            # Persistent view state
+            if "view_file" not in st.session_state:
+                st.session_state.view_file = None
 
             for file in viz_files:
                 col1, col2 = st.columns([3, 1])
 
                 with col1:
-                    st.write(f"📊 {file.name}")
+                    icon = "📊" if file.suffix == ".html" else "🖼️"
+                    st.write(f"{icon} **{file.name}**")
 
                 with col2:
-                    if st.button("👁️ View", key=f"view_{file.stem}"):
+                    if st.button("👁️ View", key=f"view_{file.stem}_{file.suffix[1:]}"):
+                        st.session_state.view_file = file
 
-                        html_content = file.read_text(encoding="utf-8")
-
-                        st.code(
-                            html_content[:2000],
-                            language="html"
-                        )
+            if st.session_state.view_file and st.session_state.view_file.exists():
+                selected_file = st.session_state.view_file
+                st.markdown("---")
+                st.markdown(f"### 👁️ Viewing: `{selected_file.name}`")
+                
+                if selected_file.suffix == ".html":
+                    try:
+                        html_content = selected_file.read_text(encoding="utf-8")
+                        import streamlit.components.v1 as components
+                        components.html(html_content, height=520, scrolling=True)
+                    except Exception as e:
+                        st.error(f"Error displaying HTML: {str(e)}")
+                elif selected_file.suffix == ".png":
+                    try:
+                        st.image(str(selected_file), caption=selected_file.name, width="stretch")
+                    except Exception as e:
+                        st.error(f"Error displaying PNG: {str(e)}")
     
     # Statistics Summary
     st.markdown("---")

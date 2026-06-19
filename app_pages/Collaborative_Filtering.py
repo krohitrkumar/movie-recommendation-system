@@ -69,7 +69,7 @@ def show_collaborative_filtering():
         )
     
     with col2:
-        recommend_button = st.button("🚀 Get Recommendations", use_container_width=True)
+        recommend_button = st.button("🚀 Get Recommendations", width="stretch")
     
     if user_id_input or recommend_button:
         if not user_id_input.strip():
@@ -116,28 +116,36 @@ def show_collaborative_filtering():
                             
                             # Display recommendations
                             for idx, row in filtered_recs.iterrows():
-                                col1, col2, col3 = st.columns([2, 1, 1])
+                                # Format genres nicely as tags
+                                genres_html = ""
+                                if pd.notna(row.get('genres')):
+                                    genres_list = [g.strip() for g in row['genres'].split('|')]
+                                    genres_html = " ".join([f'<span class="genre-badge">{g}</span>' for g in genres_list])
                                 
-                                with col1:
-                                    st.markdown(f"### 🎬 {row['title']}")
-                                    if pd.notna(row.get('genres')):
-                                        st.write(f"**Genres:** {row['genres']}")
-                                    if pd.notna(row.get('release_year')):
-                                        st.write(f"**Year:** {int(row['release_year'])}")
-                                    st.write(f"*We predict you'll rate this {row['predicted_rating']:.1f}/5*")
+                                year_str = f"({int(row['release_year'])})" if pd.notna(row.get('release_year')) else ""
+                                confidence = min(100, max(0, (row['predicted_rating'] - 3) * 20 + 50))
                                 
-                                with col2:
-                                    st.metric(
-                                        "Predicted Rating",
-                                        f"{row['predicted_rating']:.2f}"
-                                    )
-                                
-                                with col3:
-                                    confidence = min(100, max(0, (row['predicted_rating'] - 3) * 20 + 50))
-                                    st.metric(
-                                        "Confidence",
-                                        f"{confidence:.0f}%"
-                                    )
+                                st.markdown(f"""
+                                <div class="movie-card">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                        <div style="flex: 2; min-width: 250px;">
+                                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.4rem; color: #f8fafc;">🎬 {row['title']} <span style="font-weight: 300; opacity: 0.6; color: #94a3b8;">{year_str}</span></h3>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem;">{genres_html}</div>
+                                            <div style="font-size: 0.9rem; color: #94a3b8; font-style: italic;">We predict you'll rate this {row['predicted_rating']:.1f}/5</div>
+                                        </div>
+                                        <div style="flex: 1; min-width: 200px; display: flex; gap: 0.8rem; justify-content: flex-end; align-items: center;">
+                                            <div style="text-align: center; background: rgba(37, 99, 235, 0.12); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(37, 99, 235, 0.25); min-width: 90px;">
+                                                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #60a5fa; font-weight: 500;">Prediction</div>
+                                                <div style="font-size: 1.15rem; font-weight: 700; color: #3b82f6;">{row['predicted_rating']:.2f}</div>
+                                            </div>
+                                            <div style="text-align: center; background: rgba(16, 185, 129, 0.12); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25); min-width: 90px;">
+                                                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; font-weight: 500;">Confidence</div>
+                                                <div style="font-size: 1.15rem; font-weight: 700; color: #10b981;">{confidence:.0f}%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
                                 
                                 st.markdown("---")
                         else:
@@ -166,7 +174,7 @@ def show_collaborative_filtering():
     
     for idx, user_example in enumerate(example_users):
         with cols[idx]:
-            if st.button(f"User {user_example}", use_container_width=True, key=f"example_{user_example}"):
+            if st.button(f"User {user_example}", width="stretch", key=f"example_{user_example}"):
                 st.session_state.selected_user = user_example
                 st.rerun()
     
